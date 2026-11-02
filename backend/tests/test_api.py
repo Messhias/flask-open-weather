@@ -3,7 +3,7 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from app.main import app, set_service
-from app.processing import build_weather_dataframe
+from app.open_meteo import WeatherUpstreamError
 from app.service import WeatherService
 
 
@@ -18,6 +18,11 @@ class FakeClient:
             }
             for index, city in enumerate(cities)
         ]
+
+
+class FailingClient:
+    def fetch_current(self, cities):
+        raise WeatherUpstreamError("Open-Meteo returned HTTP 503")
 
 
 def _client(tmp_path: Path) -> TestClient:
@@ -64,3 +69,11 @@ def test_refresh(tmp_path: Path) -> None:
     response = client.post("/api/weather/refresh")
     assert response.status_code == 200
     assert response.json()["count"] == 10
+
+
+def test_refresh_returns_502_on_upstream_failure(tmp_path: Path) -> None:
+    set_service(WeatherService(client=FailingClient(), data_dir=tmp_path))
+    client = TestClient(app)
+    response = client.post("/api/weather/refresh")
+    assert response.status_code == 502
+    assert "Open-Meteo" in response.json()["detail"]

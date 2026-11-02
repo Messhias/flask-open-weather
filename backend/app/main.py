@@ -5,11 +5,12 @@ from __future__ import annotations
 import os
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, Query
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 
 from app.cities import get_default_cities
+from app.open_meteo import WeatherUpstreamError
 from app.service import WeatherService
 
 app = FastAPI(title="Weather Data API", version="0.1.0")
@@ -56,13 +57,20 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
+def _run_weather(callback):
+    try:
+        return callback()
+    except WeatherUpstreamError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+
 @app.get("/api/weather")
 def get_weather(
     service: ServiceDep,
     sort_by: Annotated[str, Query()] = "temperature",
     ascending: Annotated[bool | None, Query()] = None,
 ) -> dict:
-    df = service.ranked(by=sort_by, ascending=ascending)
+    df = _run_weather(lambda: service.ranked(by=sort_by, ascending=ascending))
     return {
         "cities": get_default_cities(),
         "rows": df.to_dict(orient="records"),
@@ -71,7 +79,7 @@ def get_weather(
 
 @app.get("/api/weather/csv")
 def download_csv(service: ServiceDep) -> FileResponse:
-    service.dataframe  # ensure data exists
+    _run_weather(lambda: service.dataframe)
     return FileResponse(
         path=service.csv_path,
         media_type="text/csv",
@@ -81,11 +89,11 @@ def download_csv(service: ServiceDep) -> FileResponse:
 
 @app.get("/api/charts/temperature")
 def temperature_chart(service: ServiceDep) -> Response:
-    png = service.temperature_chart_png()
+    png = _run_weather(service.temperature_chart_png)
     return Response(content=png, media_type="image/png")
 
 
 @app.post("/api/weather/refresh")
 def refresh_weather(service: ServiceDep) -> dict:
-    df = service.refresh()
+    df = _run_weather(service.refresh)
     return {"count": len(df), "rows": df.to_dict(orient="records")}
