@@ -37,15 +37,19 @@ docker compose up --build
 Wait a few seconds for the API to become healthy, then open:
 
 - Web UI: http://localhost:8080
-- API Swagger: http://localhost:8000/docs
-- Health: http://localhost:8000/health
+- API Swagger (via web proxy): http://localhost:8080/docs
+- API Swagger (direct): http://localhost:8000/docs
+- Health: http://localhost:8080/health (also on `:8000/health`)
+
+`/docs` on port `8080` is proxied by nginx to FastAPI. Opening `/docs` on the SPA without that proxy would only show the React app.
 
 Smoke test:
 
 ```bash
-curl -sS http://localhost:8000/health
-curl -sS -X POST http://localhost:8000/api/weather/refresh
-curl -sS http://localhost:8000/api/weather | head
+curl -sS http://localhost:8080/health
+curl -sS -X POST http://localhost:8080/api/weather/refresh
+curl -sS -o /dev/null -w "%{http_code}\n" http://localhost:8080/docs
+curl -sS http://localhost:8080/api/weather | head
 ```
 
 Stop:
