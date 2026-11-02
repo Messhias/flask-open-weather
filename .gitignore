@@ -9,9 +9,9 @@ venv/
 *.egg-info/
 dist/
 build/
-.python-version
 backend/weather_data.csv
 backend/data/
+backend/.venv/
 
 # Node
 node_modules/
