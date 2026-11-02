@@ -9,16 +9,24 @@ services:
       WEATHER_DATA_DIR: /data
     volumes:
       - api-data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
 
   web:
     build:
       context: ./frontend
       args:
-        VITE_API_URL: http://localhost:8000
+        # Empty = same-origin calls through nginx proxy (/api, /health, /docs).
+        VITE_API_URL: ""
     ports:
       - "8080:80"
     depends_on:
-      - api
+      api:
+        condition: service_healthy
 
 volumes:
   api-data:
