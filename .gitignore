@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+.python-version
+backend/weather_data.csv
+backend/data/
+
+# Node
+node_modules/
+frontend/dist/
+frontend/coverage/
+*.tsbuildinfo
+
+# Env / IDE
+.env
+.env.local
+.DS_Store
+.idea/
+.vscode/
+*.png
+!frontend/public/**
+
+# Docker
+*.log
