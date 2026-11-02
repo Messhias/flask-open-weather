@@ -27,6 +27,7 @@ frontend/coverage/
 .vscode/
 *.png
 !frontend/public/**
+!docs/screenshots/**
 
 # Docker
 *.log

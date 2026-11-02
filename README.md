@@ -4,6 +4,16 @@ Monorepo for the IQ Weather Data Scraping exercise. The app fetches current weat
 
 Repository: https://github.com/Messhias/flask-open-weather
 
+## Screenshots
+
+Homepage after loading live Open-Meteo data (rankings, table, and temperature chart):
+
+![Weather Dashboard homepage](docs/screenshots/home-viewport.png)
+
+Full-page capture of the same view:
+
+![Weather Dashboard full page](docs/screenshots/home-full.png)
+
 ## Prerequisites
 
 Pick one path:
